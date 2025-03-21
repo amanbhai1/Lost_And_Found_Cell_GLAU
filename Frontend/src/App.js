@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import FeedbackForm from "./feedback/FeedbackForm.jsx";
 import Navbar from "./Navbar/Navbar.jsx";
 import HelpUs from "./help-us-find-page/HelpUs.jsx";
+import Catalog from "./catalog-page/Catalog.jsx";
 import AboutUs from "./About/AboutUs.jsx";
 import Home from "./home-page/Home.jsx";
 import GoToTop from "./go-to-top/GoToTop.jsx";
@@ -13,6 +14,7 @@ import ItemGallery from "./items-gallery/ItemGallery.jsx";
 import CategorySelection from "./items-gallery/CategorySelection.jsx";
 import Login from "./login-page/Login.jsx";
 import SignUp from "./login-page/SignUp.jsx";
+import Contact from "./contact-page/Contact.jsx";
 import Faq from "./faq/Faq.jsx";
 import Footer from "./Footer/Footer.jsx";
 import ProtectedRoute from './ProtectedRoute.js';
@@ -54,9 +56,11 @@ const App = () => {
               {/* Non-protected routes */}
               <Route path="/about" element={<AboutUs theme={theme} />} />
               <Route path="/faq" element={<Faq theme={theme} />} />
-
+              <Route path="/contact" element={<Contact theme={theme} />} />
+              <Route path="/about" element={<AboutUs theme={theme} />} />
               {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute><Home theme={theme} /></ProtectedRoute>} />
+              <Route path="/catalog" element={<ProtectedRoute><Catalog theme={theme} /></ProtectedRoute>} />
               <Route path="/lost" element={<ProtectedRoute><LostUpload theme={theme} /></ProtectedRoute>} />
               <Route path="/found" element={<ProtectedRoute><FoundUpload theme={theme} /></ProtectedRoute>} />
               <Route path="/feedback" element={<ProtectedRoute><FeedbackForm theme={theme} /></ProtectedRoute>} />

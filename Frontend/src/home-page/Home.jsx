@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiSearch, FiCheckCircle, FiClock, FiMapPin, FiAlertCircle, FiBook, FiBox, FiSmartphone, FiTag } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
 // Update the images object with working URLs

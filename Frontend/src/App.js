@@ -9,7 +9,7 @@ import GoToTop from "./go-to-top/GoToTop.jsx";
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import LostUpload from './lost-details-upload-page/LostUpload.jsx';
 import FoundUpload from './found-item-details-page/FoundUpload.jsx';
-import ItemDetails from "./item-gallery-details/ItemDetails.jsx";
+import ItemDetails from "./details-page/ItemDetails.jsx";
 import ItemGallery from "./items-gallery/ItemGallery.jsx";
 import CategorySelection from "./items-gallery/CategorySelection.jsx";
 import Login from "./login-page/Login.jsx";

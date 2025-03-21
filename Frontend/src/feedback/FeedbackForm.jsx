@@ -18,7 +18,8 @@ const CssTextField = styled(TextField)({
 
 const FeedbackForm = (props) => {
   const [details, setDetails] = React.useState({ email: "", feedback: "" });
-  const host = "https://lost-and-found.cyclic.app";
+  const [rating, setRating] = React.useState(0);
+  const host = "http://localhost:5000";
 
   const onChange = async (e) => {
     setDetails({ ...details, [e.target.name]: e.target.value })
@@ -26,17 +27,34 @@ const FeedbackForm = (props) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = `${host}/feedback`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: details.email, feedback: details.feedback })
-    });
-    const json = await response.json();
-    console.log(json);
-    setDetails({ email: "", feedback: "" });
+    try {
+      const response = await fetch(`${host}/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          email: details.email, 
+          feedback: details.feedback,
+          rating: rating
+        }),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit feedback');
+      }
+
+      const json = await response.json();
+      console.log(json);
+      setDetails({ email: "", feedback: "" });
+      alert('Feedback submitted successfully!');
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert(error.message || 'Failed to submit feedback. Please check your connection.');
+    }
   }
 
   return (
@@ -97,10 +115,19 @@ const FeedbackForm = (props) => {
               <div className="flex justify-center space-x-2">
                 {[5, 4, 3, 2, 1].map((rate) => (
                   <React.Fragment key={rate}>
-                    <input type="radio" name="rate" id={`rate-${rate}`} className="hidden" />
+                    <input 
+                      type="radio" 
+                      name="rate" 
+                      id={`rate-${rate}`} 
+                      value={rate}
+                      className="hidden"
+                      onChange={() => setRating(rate)}
+                    />
                     <label 
                       htmlFor={`rate-${rate}`} 
-                      className="text-3xl cursor-pointer text-gray-300 hover:text-red-400 transition-colors"
+                      className={`text-3xl cursor-pointer transition-colors ${
+                        rating >= rate ? 'text-yellow-400' : 'text-gray-300'
+                      } hover:text-yellow-500`}
                     >
                       ★
                     </label>

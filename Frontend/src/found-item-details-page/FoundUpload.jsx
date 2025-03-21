@@ -3,6 +3,25 @@ import axios from 'axios';
 import Switch from 'react-switch';
 import logo from '../images/Logofornavbar.png';
 
+const categories = [
+  { 
+    name: 'Cards',
+    subcategories: ['College ID Card', 'ATM Card', "Driver's License", 'Aadhar Card', 'Any Other Card']
+  },
+  { 
+    name: 'Books',
+    subcategories: ['Notebook', 'Book', 'Novel', 'Any Other Book']
+  },
+  { 
+    name: 'Electronic Devices',
+    subcategories: ['Mobile Phone', 'Laptop', 'Smart Watch', 'Charger', 'Any Other Device']
+  },
+  { 
+    name: 'Others',
+    subcategories: ['Bottle', 'Wallet', 'Bag', 'Any other Item']
+  }
+];
+
 const FoundUpload = (props) => {
   const [formData, setFormData] = useState({
     description: '',
@@ -10,7 +29,7 @@ const FoundUpload = (props) => {
     category: '',
     subcategory: '',
     itemName: '',
-    itemImage: null,
+    images: [],
     place: '',
     ownerName: '',
     details: '',
@@ -22,33 +41,48 @@ const FoundUpload = (props) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setFormData(prev => ({ ...prev, images: files }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData();
+    
     Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value);
+      if (key !== 'images') data.append(key, value);
+    });
+
+    formData.images.forEach((file, index) => {
+      data.append('images', file);
     });
 
     try {
-      await axios.post('https://lost-and-found.cyclic.app/api/submitFoundItem', data, {
+      const response = await axios.post('http://localhost:5000/api/submitFoundItem', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      setFormData({
-        description: '',
-        date: '',
-        category: '',
-        subcategory: '',
-        itemName: '',
-        itemImage: null,
-        place: '',
-        ownerName: '',
-        details: '',
-        isIdentifiable: false
-      });
-      alert('Item submitted successfully!');
+
+      if (response.data.success) {
+        setFormData({
+          description: '',
+          date: '',
+          category: '',
+          subcategory: '',
+          itemName: '',
+          images: [],
+          place: '',
+          ownerName: '',
+          details: '',
+          isIdentifiable: false
+        });
+        alert('Item submitted successfully!');
+      } else {
+        alert('Submission failed: ' + response.data.message);
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Error submitting form. Please try again.');
+      alert(`Error: ${error.response?.data?.message || 'Submission failed'}`);
     }
   };
 
@@ -127,10 +161,11 @@ const FoundUpload = (props) => {
                 required
               >
                 <option value="">Select category</option>
-                <option value="Cards">Cards</option>
-                <option value="Electronic Devices">Electronic Devices</option>
-                <option value="Books">Books</option>
-                <option value="Others">Others</option>
+                {categories.map((cat) => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
             {formData.category && (
@@ -144,6 +179,13 @@ const FoundUpload = (props) => {
                   required
                 >
                   <option value="">Select subcategory</option>
+                  {categories
+                    .find(cat => cat.name === formData.category)
+                    ?.subcategories.map((sub) => (
+                      <option key={sub} value={sub}>
+                        {sub}
+                      </option>
+                    ))}
                 </select>
               </div>
             )}
@@ -151,14 +193,18 @@ const FoundUpload = (props) => {
 
           {/* Item Image */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium">Item Image</label>
+            <label className="block text-sm font-medium">Item Images (Max 6)</label>
             <input
               type="file"
-              name="itemImage"
-              onChange={(e) => setFormData(prev => ({ ...prev, itemImage: e.target.files[0] }))}
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
               className="w-full px-4 py-2 rounded-lg border border-gray-300/20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-transparent file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               required
             />
+            <p className="text-sm text-gray-500">
+              {formData.images.length} image(s) selected
+            </p>
           </div>
 
           {/* Identifiable Switch */}
@@ -204,11 +250,26 @@ const FoundUpload = (props) => {
             </div>
           )}
 
+          {/* Item Name */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Item Name</label>
+            <input
+              type="text"
+              name="itemName"
+              value={formData.itemName}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300/20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-transparent"
+              placeholder="Enter item name"
+              required
+            />
+          </div>
+
           {/* Submit Button */}
           <div className="pt-6">
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50"
+              disabled={formData.images.length === 0}
             >
               Submit Found Item
             </button>

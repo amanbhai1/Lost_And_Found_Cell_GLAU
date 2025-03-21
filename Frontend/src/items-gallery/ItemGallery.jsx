@@ -20,7 +20,7 @@ const ItemGallery = (props) => {
   const [year, setYear] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const { category } = useParams();
-  const host = "https://lost-and-found.cyclic.app";
+  const host = "http://localhost:5000";
 
   // API call
   const url = `${host}/getAllItems`;
@@ -28,20 +28,19 @@ const ItemGallery = (props) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          }
-        });
+        const response = await fetch(url);
         const json = await response.json();
-        setItems(json);
+        if(json.success) {
+          setItems(json.data);
+        } else {
+          console.error('Error fetching items:', json.error);
+        }
         console.log(json);
       } catch (error) {
         console.log(error.message);
       }
       finally {
-        setSpinner(false); // Hide the spinner after data is fetched
+        setSpinner(false);
       }
     }
     fetchData();

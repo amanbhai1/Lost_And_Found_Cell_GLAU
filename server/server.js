@@ -92,7 +92,7 @@ const foundItemStorage = multer.diskStorage({
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const extname = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + extname);
+    cb(null, 'image-' + uniqueSuffix + extname);
   },
 });
 
@@ -103,12 +103,23 @@ const lostItemStorage = multer.diskStorage({
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const extname = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + extname);
+    cb(null, 'image-' + uniqueSuffix + extname);
   },
 });
 
-const foundItemUpload = multer({ storage: foundItemStorage });
-const lostItemUpload = multer({ storage: lostItemStorage });
+const foundItemUpload = multer({ 
+  storage: foundItemStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB limit
+  }
+});
+
+const lostItemUpload = multer({ 
+  storage: lostItemStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024
+  }
+});
 
 // Models
 const FoundItem = mongoose.model('FoundItem', new mongoose.Schema({
@@ -121,7 +132,7 @@ const FoundItem = mongoose.model('FoundItem', new mongoose.Schema({
   ownerName: String,
   details: String,
   isIdentifiable: Boolean,
-  itemImage: String,
+  images: [String],
 }, { collection: 'foundItem' }));
 
 const LostItem = mongoose.model('LostItem', new mongoose.Schema({
@@ -133,7 +144,7 @@ const LostItem = mongoose.model('LostItem', new mongoose.Schema({
   category: String,
   subcategory: String,
   itemName: String,
-  itemImage: String,
+  images: [String],
   place: String,
 }, { collection: 'lostItem' }));
 
@@ -147,7 +158,7 @@ const CollectedItem = mongoose.model('CollectedItem', new mongoose.Schema({
   ownerName: String,
   details: String,
   isIdentifiable: Boolean,
-  itemImage: String,
+  images: [String],
   name: String,
   email: String,
   sapId: String,
@@ -161,69 +172,127 @@ app.use('/api/auth', authRoutes);
 app.use('/feedback', feedbackRouter);
 
 // Item Routes
-app.post('/api/submitFoundItem', foundItemUpload.single('itemImage'), async (req, res) => {
+app.post('/api/submitFoundItem', foundItemUpload.array('images', 6), async (req, res) => {
   try {
+    const images = req.files.map(file => file.filename);
+    
     const foundItem = new FoundItem({
       ...req.body,
-      itemImage: req.file.filename
+      images: images
     });
+
     await foundItem.save();
-    res.sendStatus(200);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Found item submitted successfully',
+      data: foundItem
+    });
+    
   } catch (error) {
-    console.error('Error submitting found item form:', error);
-    res.sendStatus(500);
+    console.error('Error submitting found item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit found item',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
-app.post('/api/submitLostItem', lostItemUpload.single('itemImage'), async (req, res) => {
+app.post('/api/submitLostItem', lostItemUpload.array('images', 6), async (req, res) => {
   try {
+    // Get uploaded files
+    const images = req.files.map(file => file.filename);
+    
+    // Create new lost item with images array
     const lostItem = new LostItem({
       ...req.body,
-      itemImage: req.file ? req.file.filename : null
+      images: images
     });
+
     await lostItem.save();
-    res.sendStatus(200);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Lost item report submitted successfully',
+      data: lostItem
+    });
+    
   } catch (error) {
-    console.error('Error submitting lost item form:', error);
-    res.sendStatus(500);
+    console.error('Error submitting lost item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to submit lost item',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
-app.post('/getAllItems', async (req, res) => {
+app.get('/getAllItems', async (req, res) => {
   try {
     const items = await FoundItem.find();
-    res.json(items);
+    res.json({
+      success: true,
+      data: items.map(item => ({
+        ...item._doc,
+        images: item.images.map(img => `/foundItemImages/${img}`)
+      }))
+    });
   } catch (error) {
     console.error("Error fetching items:", error);
-    res.status(500).json({ error: "Error fetching items" });
+    res.status(500).json({ 
+      success: false,
+      error: "Error fetching items" 
+    });
   }
 });
 
-app.post('/getLostItems', async (req, res) => {
+app.get('/getLostItems', async (req, res) => {
   try {
     const items = await LostItem.find();
-    res.json(items);
+    res.json({
+      success: true,
+      data: items.map(item => ({
+        ...item._doc,
+        images: item.images.map(img => `/lostItemImages/${img}`)
+      }))
+    });
   } catch (error) {
     console.error("Error fetching lost items:", error);
-    res.status(500).json({ error: "Error fetching lost items" });
+    res.status(500).json({ 
+      success: false,
+      error: "Error fetching lost items" 
+    });
   }
 });
 
 app.post('/claimItem/:id', async (req, res) => {
   try {
     const item = await FoundItem.findById(req.params.id);
-    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (!item) return res.status(404).json({ success: false, message: 'Item not found' });
 
     const collectedItem = new CollectedItem({
       ...item.toObject(),
-      ...req.body
+      ...req.body,
+      images: item.images
     });
+
     await collectedItem.save();
     await FoundItem.findByIdAndDelete(req.params.id);
-    res.sendStatus(200);
+    
+    res.json({
+      success: true,
+      message: 'Item claimed successfully',
+      data: collectedItem
+    });
+    
   } catch (error) {
     console.error('Error claiming item:', error);
-    res.sendStatus(500);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to claim item',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -234,6 +303,16 @@ app.use('/lostItemImages', express.static(join(__dirname, 'lostItemImages')));
 // Test Route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Server is working' });
+});
+
+// Add error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // Start Server

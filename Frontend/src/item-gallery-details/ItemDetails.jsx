@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom';
-import './details.css'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import dark from './dark.jpg';
+// import './details.tailwindcss';
 
 const ItemDetails = (props) => {
 

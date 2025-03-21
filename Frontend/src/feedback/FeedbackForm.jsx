@@ -1,5 +1,4 @@
 import React from 'react';
-import './feedback.css';
 import { Button, TextField } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -14,9 +13,8 @@ const CssTextField = styled(TextField)({
     '&.Mui-focused fieldset': {
       borderColor: 'purple',
     },
-
   },
-}); 
+});
 
 const FeedbackForm = (props) => {
   const [details, setDetails] = React.useState({ email: "", feedback: "" });
@@ -28,8 +26,6 @@ const FeedbackForm = (props) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // API call
     const url = `${host}/feedback`;
     const response = await fetch(url, {
       method: "POST",
@@ -38,106 +34,142 @@ const FeedbackForm = (props) => {
       },
       body: JSON.stringify({ email: details.email, feedback: details.feedback })
     });
-
     const json = await response.json();
     console.log(json);
     setDetails({ email: "", feedback: "" });
   }
 
   return (
-    <>
-      <div className={`body ${props.theme === 'dark' ? 'dark-mode' : ''}`}></div>
-      <div className="addnotes " style={{ paddingTop: "50px", margin: "auto" }}>
-        <div className=" right ps-5 pe-5 pt-4 mb-5" style={{ backgroundColor: `${props.theme === 'dark' ? '#333' : ''}`, color: `${props.theme === 'dark' ? '#f5f5f5' : '#333'}` }}>
-          <div className="d-flex justify-content-center mb-2">
-            <h3 style={{ fontWeight: "bold", fontFamily: '"Mons", sans-serif' }}>Feedback Form</h3>
+    <div className={`min-h-screen bg-cover bg-center ${props.theme === 'dark' ? 'bg-dark-overlay' : ''}`} style={{ backgroundImage: `url(./bg.jpg)` }}>
+      <div className="max-w-2xl mx-auto p-5 pt-12">
+        <div className={`${props.theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-800'} p-8 rounded-lg shadow-lg`}>
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold mb-2">Feedback Form</h3>
+            <p className="text-gray-500 dark:text-gray-400">
+              Thank you for taking your time to provide feedback. We appreciate hearing from you and will review your comments carefully.
+            </p>
           </div>
-          <p className="mb-4 text-center">Thank you for taking your time to provide feedback. We appreciate hearing from you and will review your comments carefully.</p>
 
-          <form className={`feedback-form ${props.theme === 'dark' ? 'dark-mode' : ''}`} onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <p className='container' style={{ marginBottom: "6px" }}>Email</p>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-1">Email</label>
               {props.theme === 'dark' ? (
-                <CssTextField variant="outlined" color="secondary" type="email" onChange={onChange} value={details.email} placeholder='Email' id="email" name="email" InputProps={{ style: { borderRadius: '10px', color: '#f5f5f5', } }} />
+                <CssTextField
+                  fullWidth
+                  variant="outlined"
+                  color="secondary"
+                  type="email"
+                  onChange={onChange}
+                  value={details.email}
+                  placeholder="Email"
+                  id="email"
+                  name="email"
+                  InputProps={{
+                    style: {
+                      borderRadius: '10px',
+                      color: '#f5f5f5',
+                    },
+                  }}
+                />
               ) : (
-                <TextField variant="outlined" color="secondary" type="email" onChange={onChange} value={details.email} placeholder='Email' id="email" name="email" InputProps={{ style: { borderRadius: '10px', color: '#333', } }} />
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  color="secondary"
+                  type="email"
+                  onChange={onChange}
+                  value={details.email}
+                  placeholder="Email"
+                  id="email"
+                  name="email"
+                  InputProps={{
+                    style: {
+                      borderRadius: '10px',
+                      color: '#333',
+                    },
+                  }}
+                />
               )}
             </div>
 
-            <h6 className="container mt-4" style={{ marginBottom: "-1px" }}>How would you rate us?</h6>
-            <div className='container-star '>
-              <div className="star-widget">
-                <input type="radio" name="rate" id="rate-5" />
-                <label htmlFor="rate-5" className='fas fa-star' ></label>
-
-                <input type="radio" name="rate" id="rate-4" />
-                <label htmlFor="rate-4" className='fas fa-star'></label>
-
-                <input type="radio" name="rate" id="rate-3" />
-                <label htmlFor="rate-3" className='fas fa-star'></label>
-
-                <input type="radio" name="rate" id="rate-2" />
-                <label htmlFor="rate-2" className='fas fa-star'></label>
-
-                <input type="radio" name="rate" id="rate-1" />
-                <label htmlFor="rate-1" className='fas fa-star'></label>
-                <header></header>
+            <div>
+              <h6 className="text-sm font-medium mb-2">How would you rate us?</h6>
+              <div className="flex justify-center space-x-2">
+                {[5, 4, 3, 2, 1].map((rate) => (
+                  <React.Fragment key={rate}>
+                    <input type="radio" name="rate" id={`rate-${rate}`} className="hidden" />
+                    <label 
+                      htmlFor={`rate-${rate}`} 
+                      className="text-3xl cursor-pointer text-gray-300 hover:text-red-400 transition-colors"
+                    >
+                      ★
+                    </label>
+                  </React.Fragment>
+                ))}
               </div>
             </div>
 
-            <div className="my-3">
-              <p className="container" style={{ marginBottom: "6px" }}>Please share your feedback</p>
+            <div>
+              <label className="block text-sm font-medium mb-1">Please share your feedback</label>
               {props.theme === 'dark' ? (
-    <CssTextField
-      type="text"
-      placeholder='Share you experience or suggestions'
-      multiline
-      rows={5}
-      onChange={onChange}
-      value={details.feedback}
-      id="feedback"
-      name="feedback"
-      color="secondary"
-      variant="outlined"
-      required
-      InputProps={{
-        style: {
-          borderRadius: '20px',
-          color: '#f5f5f5',
-        },
-      }}
-    />
-  ) : (
-    <TextField
-      type="text"
-      placeholder='Share you experience or suggestions'
-      multiline
-      rows={5}
-      onChange={onChange}
-      value={details.feedback}
-      id="feedback"
-      name="feedback"
-      color="secondary"
-      variant="outlined"
-      required
-      InputProps={{
-        style: {
-          borderRadius: '20px',
-          color: '#333',
-        },
-      }}
-    />
-  )}
-
+                <CssTextField
+                  fullWidth
+                  variant="outlined"
+                  color="secondary"
+                  type="text"
+                  placeholder="Share your experience or suggestions"
+                  multiline
+                  rows={5}
+                  onChange={onChange}
+                  value={details.feedback}
+                  id="feedback"
+                  name="feedback"
+                  required
+                  InputProps={{
+                    style: {
+                      borderRadius: '20px',
+                      color: '#f5f5f5',
+                    },
+                  }}
+                />
+              ) : (
+                <TextField
+                  fullWidth
+                  variant="outlined"
+                  color="secondary"
+                  type="text"
+                  placeholder="Share your experience or suggestions"
+                  multiline
+                  rows={5}
+                  onChange={onChange}
+                  value={details.feedback}
+                  id="feedback"
+                  name="feedback"
+                  required
+                  InputProps={{
+                    style: {
+                      borderRadius: '20px',
+                      color: '#333',
+                    },
+                  }}
+                />
+              )}
             </div>
 
-            <Button type="submit" variant="contained" color="success" className="my-3 mb-4" style={{ textTransform: "none", borderRadius: "15px", fontFamily: "'Poppins', sans-serif", fontSize: "1rem" }}>Submit</Button>
+            <Button
+              type="submit"
+              variant="contained"
+              color="success"
+              fullWidth
+              className="!normal-case !rounded-lg !py-2 !text-base"
+            >
+              Submit
+            </Button>
           </form>
         </div>
       </div>
+    </div>
+  );
+};
 
-    </>
-  )
-}
-
-export default FeedbackForm
+export default FeedbackForm;

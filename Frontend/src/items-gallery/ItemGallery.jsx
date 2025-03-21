@@ -119,125 +119,166 @@ const ItemGallery = (props) => {
   };
 
   return (
-    <>
-      <h1 className="text-center" style={{color: `${props.theme === 'dark' ? '#f5f5f5' : '#333'}`}}>Items Gallery - {category}</h1>
-      {spinner &&
-        <div className='text-center my-5 pt-5' >
-          <img src={loading} alt="loading" width="40px" />
+    <div className={`min-h-screen p-4 md:p-8 ${props.theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            {category ? `${category} Items` : 'All Lost Items'}
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Browse through recently reported lost items
+          </p>
         </div>
-      }
-      <div className="d-flex flex-wrap justify-content-center my-3" style={{ paddingBottom: '150px'}}>
-        {filteredItems.map((item) => (
-          <div className="card-container" key={item._id}>
-            <div className="cards-item">
-              <img src={`${host}/foundItemImages/${item.itemImage}`} alt="items" />
-              <div className="intro">
-                <h2>{item.date}</h2>
-                <Button
-                  className="button"
-                  size="small"
-                  style={{
-                    textTransform: 'none',
-                    fontFamily: "'Poppins', sans-serif",
-                    marginLeft: '15px',
-                    borderRadius: '10px',
-                  }}
-                  variant="contained"
-                  color="secondary"
-                  component={Link}
-                  to={`/details/${item._id}`}
-                >
-                  See Details
-                </Button>
-                <Button
-                  className="button"
-                  size="small"
-                  style={{
-                    textTransform: 'none',
-                    fontFamily: "'Poppins', sans-serif",
-                    marginLeft: '40px',
-                    borderRadius: '10px',
-                  }}
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => handleClaimItem(item._id)}
-                >
-                  Claim Item
-                </Button>
+
+        {spinner && (
+          <div className="flex justify-center my-5 pt-5">
+            <img src={loading} alt="loading" className="w-10 h-10" />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredItems.map((item) => (
+            <div 
+              key={item._id}
+              className="group relative h-80 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <img 
+                src={`${host}/foundItemImages/${item.itemImage}`} 
+                alt="items" 
+                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+              />
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent flex flex-col justify-end p-4">
+                <div className="space-y-2">
+                  <p className="text-white font-semibold text-lg">{item.date}</p>
+                  
+                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <Link
+                      to={`/details/${item._id}`}
+                      className="w-full py-2 px-4 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-lg font-medium text-center transition-all"
+                    >
+                      Details
+                    </Link>
+                    <button
+                      onClick={() => handleClaimItem(item._id)}
+                      className="w-full py-2 px-4 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white rounded-lg font-medium transition-all"
+                    >
+                      Claim
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Enter Your Details</DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={handleClose}
+        PaperProps={{
+          className: `${props.theme === 'dark' ? '!bg-gray-800 !text-white' : ''} rounded-2xl`
+        }}
+      >
+        <DialogTitle className={`${props.theme === 'dark' ? '!text-white' : ''}`}>Enter Your Details</DialogTitle>
         <DialogContent>
-          <TextField
-            label="Details"
-            value={details}
-            onChange={(e) => setDetails(e.target.value)}
-            multiline
-            rows={4}
-            required
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="SAP ID"
-            value={sapId}
-            onChange={(e) => setSapId(e.target.value)}
-            required
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Branch"
-            value={branch}
-            onChange={(e) => setBranch(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Year"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            fullWidth
-            margin="normal"
-          />
-          <TextField
-            label="Contact Number"
-            value={contactNumber}
-            onChange={(e) => setContactNumber(e.target.value)}
-            required
-            fullWidth
-            margin="normal"
-          />
+          <div className="space-y-4 py-4">
+            <TextField
+              label="Details"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              multiline
+              rows={4}
+              required
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="SAP ID"
+              value={sapId}
+              onChange={(e) => setSapId(e.target.value)}
+              required
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="Branch"
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="Year"
+              value={year}
+              onChange={(e) => setYear(e.target.value)}
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="Contact Number"
+              value={contactNumber}
+              onChange={(e) => setContactNumber(e.target.value)}
+              required
+              fullWidth
+              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: props.theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+          </div>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
+        <DialogActions className="px-6 pb-4">
+          <Button 
+            onClick={handleClose}
+            className={`${props.theme === 'dark' ? '!text-gray-300' : ''} hover:!bg-gray-100`}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained" 
+            className="!bg-gradient-to-r !from-blue-600 !to-purple-600 hover:!from-blue-700 hover:!to-purple-700 !text-white !rounded-lg !px-6 !py-2"
+          >
             Claim
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </div>
   );
 };
 

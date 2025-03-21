@@ -1,41 +1,37 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react';
 import { FaArrowUp } from 'react-icons/fa';
-import "./goToTop.css";
 
 const GoToTop = () => {
-
-    const [isVisible, setIsVisible] = React.useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
     const goToBtn = () => {
         window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    }
+    };
 
     const listenToScroll = () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        if (winScroll > 250) {
-            setIsVisible(true);
-        }
-        else {
-            setIsVisible(false);
-        }
-    }
+        setIsVisible(winScroll > 250);
+    };
 
     useEffect(() => {
         window.addEventListener("scroll", listenToScroll);
         return () => window.removeEventListener("scroll", listenToScroll);
-    }, [])
+    }, []);
 
     return (
         <>
-            {isVisible && <div className="top-btn" onClick={goToBtn}>
-                <FaArrowUp className='top-btn-icon' />
-            </div>}
+            {isVisible && (
+                <button
+                    onClick={goToBtn}
+                    className="fixed bottom-8 right-8 z-50 p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 hover:shadow-xl group"
+                    aria-label="Scroll to top"
+                >
+                    <FaArrowUp className="w-6 h-6 text-white group-hover:-translate-y-1 transition-transform" />
+                    <span className="sr-only">Scroll to top</span>
+                </button>
+            )}
         </>
     );
-
 };
 
-
-
-
-export default GoToTop
+export default GoToTop;

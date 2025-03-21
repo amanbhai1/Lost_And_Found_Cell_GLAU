@@ -12,6 +12,7 @@ import ItemDetails from "./item-gallery-details/ItemDetails.jsx";
 import ItemGallery from "./items-gallery/ItemGallery.jsx";
 import CategorySelection from "./items-gallery/CategorySelection.jsx";
 import Login from "./login-page/Login.jsx";
+import SignUp from "./login-page/SignUp.jsx";
 import Faq from "./faq/Faq.jsx";
 import Footer from "./Footer/Footer.jsx";
 import ProtectedRoute from './ProtectedRoute.js';
@@ -88,6 +89,7 @@ const App = () => {
             <Navbar toggleTheme={toggleTheme} theme={theme} />
             <Routes>
               <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/signup" element={<SignUp theme={theme} />} />
               <Route path="/login" element={<Login theme={theme} />} />
               {/* Non-protected routes */}
               <Route path="/about" element={<AboutUs theme={theme} />} />

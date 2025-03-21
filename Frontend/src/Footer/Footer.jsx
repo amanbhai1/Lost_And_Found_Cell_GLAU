@@ -1,83 +1,72 @@
-import React from 'react';
-import "./Footer.css";
-import fb from "../images/insta-logo.png";
-import twitter from "../images/twitter-logo.png";
-import insta from "../images/facebook-logo.png";
-import linkedin from "../images/linkedin-logo.png"
+import React from "react";
+import { FaInstagram, FaTwitter, FaFacebook, FaLinkedin, FaYoutube } from "react-icons/fa";
+
 const Footer = () => {
   return (
-    <div className="footer">
-      <div className="sb__footer__section__padding">
-        <div className="sb__footer-links">
-          <div className="sb__footer-links_div">
-            <h4>About Us</h4>
-            <a href="/home">
-              <p>Home</p>
-            </a>
-            <a href="/feedback">
-              <p>Feedback</p>
-            </a>
-          </div>
-          <div className="sb__footer-links_div">
-            <h4>Services</h4>
-            <a href="/lost">
-              <p>Report Lost Item</p>
-            </a>
-            <a href="/found">
-              <p>Report Found Item</p>
-            </a>
-            <a href="/items">
-              <p>See Items Gallery</p>
-            </a>
-            <a href="/helpusfind">
-              <p>Help Us Find</p>
-            </a>
-          </div>
-          <div className="sb__footer-links_div">
-            <h4>Partners</h4>
-            <a href="/about">
-              <a href="https://upes-open.org/"> <p>UPES Open Community</p></a>
-            </a>
-          </div>
-          <div className="sb__footer-links_div">
-            <h4>Feedback</h4>
-            <a href="/resources">
-              <a href="https://upes-open.org/contact" ><p>Email</p></a>
-            </a>
-            <a href="/resources">
-              <a href="https://upes-open.org/contact"><p>Contact Number</p></a> 
-            </a>
-            <a href="/resources">
-              <a href='https://www.upes.ac.in/'><p>Visit Us</p></a> 
-            </a>
-          </div>
-          <div className="sb__footer-links_div">
-            <h4>Social</h4>
-            <div className='socialmedia'>
-            <a href="https://www.instagram.com/upes_dehradun/"><p><img src={fb} alt="instaimage"/></p></a>
-            <a href="https://twitter.com/UPESDehradun/"><p><img src={twitter} alt="twitterimage"/></p></a>
-            <a href="https://www.facebook.com/UPESddnuk/"><p><img src={insta} alt="fbimage"/></p></a>
-            <a href="https://www.linkedin.com/company/open-community/"><p><img src={linkedin} alt="linkedinimage"/></p></a>
-            </div>
+    <footer className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white py-10">
+      <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* University Info */}
+        <div className="space-y-4">
+          <h4 className="text-xl font-bold mb-4">GLA University</h4>
+          <p className="text-sm dark:text-gray-300">
+            17km Stone, NH-2, Mathura-Delhi Road
+            <br />
+            Mathura, Uttar Pradesh 281406
+          </p>
+          <div className="space-y-1">
+            <p className="text-sm dark:text-gray-300">Phone: +91-5662-250900</p>
+            <p className="text-sm dark:text-gray-300">Email: info@gla.ac.in</p>
           </div>
         </div>
-        <hr></hr>
 
-        <div className='sb__footer-below'>
-          <div className='sb__footer-copyright'>
-            <p>
-              @{new Date().getFullYear()} CodeInn. All right reserved.
-            </p>
-          </div>
-          <div className='sb__footer-below-links'>
-            <a href="/terms"><div><p>Terms & Conditions</p></div></a>
-            <a href="/terms"><div><p>Privacy</p></div></a>
-            <a href="/terms"><div><p>Security</p></div></a>
-            <a href="/terms"><div><p>Cookie Declaration</p></div></a>
+        {/* Quick Links */}
+        <div>
+          <h4 className="text-xl font-bold mb-4">Quick Links</h4>
+          <ul className="space-y-2">
+            <li><a href="/admissions" className="hover:text-blue-600 dark:hover:text-blue-400">Admissions</a></li>
+            <li><a href="/courses" className="hover:text-blue-600 dark:hover:text-blue-400">Courses</a></li>
+            <li><a href="/placements" className="hover:text-blue-600 dark:hover:text-blue-400">Placements</a></li>
+            <li><a href="/research" className="hover:text-blue-600 dark:hover:text-blue-400">Research</a></li>
+          </ul>
+        </div>
+
+        {/* Important Links */}
+        <div>
+          <h4 className="text-xl font-bold mb-4">Important Links</h4>
+          <ul className="space-y-2">
+            <li><a href="/mandatory-disclosure" className="hover:text-blue-600 dark:hover:text-blue-400">Mandatory Disclosure</a></li>
+            <li><a href="/anti-ragging" className="hover:text-blue-600 dark:hover:text-blue-400">Anti Ragging</a></li>
+            <li><a href="/grievance" className="hover:text-blue-600 dark:hover:text-blue-400">Grievance Redressal</a></li>
+            <li><a href="/nirf" className="hover:text-blue-600 dark:hover:text-blue-400">NIRF</a></li>
+          </ul>
+        </div>
+
+        {/* Social Media */}
+        <div>
+          <h4 className="text-xl font-bold mb-4">Connect With Us</h4>
+          <div className="flex space-x-4">
+            <a href="https://www.facebook.com/GLAMathura" className="text-gray-700 dark:text-gray-300 text-2xl hover:text-blue-600 dark:hover:text-blue-400"><FaFacebook /></a>
+            <a href="https://twitter.com/GLAMathura" className="text-gray-700 dark:text-gray-300 text-2xl hover:text-blue-600 dark:hover:text-blue-400"><FaTwitter /></a>
+            <a href="https://www.instagram.com/glauniversity/" className="text-gray-700 dark:text-gray-300 text-2xl hover:text-blue-600 dark:hover:text-blue-400"><FaInstagram /></a>
+            <a href="https://www.linkedin.com/school/gla-university/" className="text-gray-700 dark:text-gray-300 text-2xl hover:text-blue-600 dark:hover:text-blue-400"><FaLinkedin /></a>
+            <a href="https://www.youtube.com/user/GLAMathura" className="text-gray-700 dark:text-gray-300 text-2xl hover:text-blue-600 dark:hover:text-blue-400"><FaYoutube /></a>
           </div>
         </div>
       </div>
-    </div>
+
+      <hr className="my-6 border-gray-300 dark:border-gray-700" />
+
+      <div className="text-center text-sm dark:text-gray-300">
+        <p className="mb-2">
+          &copy; {new Date().getFullYear()} GLA University. All Rights Reserved. | 
+          <a href="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400 ml-1">Privacy Policy</a> | 
+          <a href="/terms" className="hover:text-blue-600 dark:hover:text-blue-400">Terms of Use</a>
+        </p>
+        <p className="text-xs">
+          Recognized u/s 2(f) of UGC Act 1956 | NAAC 'A' Grade Accredited | NIRF Ranked
+        </p>
+      </div>
+    </footer>
   );
 };
 

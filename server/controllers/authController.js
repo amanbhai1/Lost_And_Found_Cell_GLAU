@@ -1,119 +1,56 @@
 import User from '../models/User.js';
-import Otp from '../models/Otp.js';
 import { validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { generateOTP, sendEmail } from '../utils/otpUtils.js';
 
-// Helper function for error responses
-const errorResponse = (res, status, message) => {
-  return res.status(status).json({ success: false, error: message });
-};
+export const registerUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-export const register = async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { name, email, phone, password, course, year, section } = req.body;
 
-    // Check for existing user
+    // Validate GLA email format
+    if (!email.endsWith('@gla.ac.in')) {
+      return res.status(400).json({ error: 'Only GLA university emails are allowed' });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return errorResponse(res, 409, 'User already exists');
+      return res.status(400).json({ error: 'User already exists with this email' });
     }
 
-    // Create unverified user
-    await User.create({ fullName, email, password });
-
-    // Generate and store OTP
-    const otp = generateOTP();
-    await Otp.create({ email, otp });
-
-    // Send verification email
-    await sendEmail({
-      to: email,
-      subject: 'Email Verification OTP',
-      text: `Your verification OTP is: ${otp} (valid for 10 minutes)`
+    const newUser = new User({ 
+      name,
+      email,
+      phone,
+      password,
+      course,
+      year,
+      section
     });
+
+    await newUser.save();
 
     res.status(201).json({
-      success: true,
-      message: 'OTP sent to email',
-      data: { email }
+      message: 'Registration successful',
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      }
     });
 
   } catch (error) {
-    errorResponse(res, 500, 'Registration failed');
-  }
-};
-
-export const verifyOtp = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-
-    // Find OTP record
-    const otpRecord = await Otp.findOne({ email });
-    if (!otpRecord) {
-      return errorResponse(res, 400, 'OTP expired or invalid');
-    }
-
-    // Check attempt limit
-    if (otpRecord.attempts >= 3) {
-      return errorResponse(res, 429, 'Too many attempts');
-    }
-
-    // Verify OTP
-    if (otp !== otpRecord.otp) {
-      await Otp.updateOne({ email }, { $inc: { attempts: 1 } });
-      return errorResponse(res, 400, 'Invalid OTP');
-    }
-
-    // Clear OTP after successful verification
-    await Otp.deleteOne({ email });
-
-    res.status(200).json({
-      success: true,
-      message: 'OTP verified successfully'
+    console.error('Registration error:', error);
+    res.status(500).json({ 
+      error: 'Server error during registration',
+      details: error.message 
     });
-
-  } catch (error) {
-    errorResponse(res, 500, 'Verification failed');
-  }
-};
-
-export const resendOtp = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return errorResponse(res, 404, 'User not found');
-    }
-
-    if (user.isVerified) {
-      return errorResponse(res, 400, 'Email already verified');
-    }
-
-    // Generate new OTP
-    const otp = generateOTP();
-    await Otp.findOneAndUpdate(
-      { email },
-      { otp, attempts: 0, createdAt: Date.now() },
-      { upsert: true }
-    );
-
-    // Resend email
-    await sendEmail({
-      to: email,
-      subject: 'New Verification OTP',
-      text: `Your new OTP is: ${otp} (valid for 10 minutes)`
-    });
-
-    res.status(200).json({
-      success: true,
-      message: 'New OTP sent successfully'
-    });
-
-  } catch (error) {
-    errorResponse(res, 500, 'Failed to resend OTP');
   }
 };
 
@@ -173,40 +110,22 @@ export const loginUser = async (req, res) => {
 
 export const sendOTP = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, name } = req.body;
     
-    // Validate GLA email format
-    if (!email.endsWith('@gla.ac.in')) {
-      return errorResponse(res, 400, 'Only GLA University emails are allowed');
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return errorResponse(res, 409, 'User already registered');
-    }
-
-    // Generate and store OTP
+    // Generate and store OTP logic here
     const otp = generateOTP();
-    await Otp.findOneAndUpdate(
-      { email },
-      { otp, attempts: 0, createdAt: Date.now() },
-      { upsert: true, new: true }
-    );
-
+    // Save OTP to database/cache with expiration
+    
     // Send email
     await sendEmail({
       to: email,
-      subject: 'Verification OTP - Lost & Found System',
-      text: `Your verification OTP is: ${otp} (valid for 10 minutes)`
+      subject: 'Your Verification OTP',
+      text: `Hello ${name}, your OTP is: ${otp}`
     });
 
-    res.status(200).json({ 
-      success: true,
-      message: 'OTP sent to email' 
-    });
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error('OTP send error:', error);
-    errorResponse(res, 500, 'Failed to send OTP');
+    res.status(500).json({ error: 'Failed to send OTP' });
   }
 }; 

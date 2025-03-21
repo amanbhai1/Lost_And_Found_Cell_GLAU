@@ -1,22 +1,8 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { 
-  register, 
-  loginUser, 
-  sendOTP, 
-  verifyOtp, 
-  resendOtp 
-} from '../controllers/authController.js';
-import rateLimit from 'express-rate-limit';
+import { registerUser, loginUser, sendOTP } from '../controllers/authController.js';
 
 const router = express.Router();
-
-// Rate limiting for OTP requests
-const otpLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 3,
-  message: 'Too many requests from this IP, please try again later'
-});
 
 router.post('/register', 
   [
@@ -28,13 +14,13 @@ router.post('/register',
     body('password')
       .isLength({ min: 8 })
       .withMessage('Password must be at least 8 characters')
-      .matches(/[0-9]/).withMessage('Password needs at least 1 number')
-      .matches(/[a-zA-Z]/).withMessage('Password needs at least 1 letter'),
+      .matches(/[0-9]/)
+      .withMessage('Password must contain at least 1 number'),
     body('course').trim().notEmpty(),
     body('year').trim().notEmpty(),
     body('section').trim().notEmpty()
   ],
-  register
+  registerUser
 );
 
 router.post('/login',
@@ -45,8 +31,6 @@ router.post('/login',
   loginUser
 );
 
-router.post('/send-otp', otpLimiter, sendOTP);
-router.post('/verify-otp', otpLimiter, verifyOtp);
-router.post('/resend-otp', otpLimiter, resendOtp);
+router.post('/send-otp', sendOTP);
 
 export default router; 

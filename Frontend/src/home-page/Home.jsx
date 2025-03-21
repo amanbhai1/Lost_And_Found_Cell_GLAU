@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiSearch, FiCheckCircle, FiClock, FiMapPin, FiAlertCircle, FiBook, FiBox, FiSmartphone, FiTag } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 // Update the images object with working URLs
 const images = {
@@ -12,11 +14,46 @@ const images = {
   map: 'https://images.unsplash.com/photo-1579783483453-83c018aff8d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
 };
 
-const Home = () => {
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { 
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', stiffness: 100 }
+  }
+};
+
+const Home = ({ theme }) => {
+  const [heroRef, heroInView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [statsRef, statsInView] = useInView({ triggerOnce: true, threshold: 0.1 });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, [theme]);
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Hero Section */}
-      <section className="relative pt-24 pb-16 overflow-hidden">
+      <motion.section 
+        ref={heroRef}
+        initial="hidden"
+        animate={heroInView ? "visible" : "hidden"}
+        variants={containerVariants}
+        className="relative pt-24 pb-16 overflow-hidden"
+      >
         <img 
           src={images.hero} 
           alt="GLA University Campus" 
@@ -24,46 +61,64 @@ const Home = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-blue-900/40"></div>
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-xl">
-            Lost & Found at GLA University
-          </h1>
-          <p className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto">
-            Official platform for reuniting lost items with their owners across GLA Campus
-          </p>
+          <motion.h1 
+            variants={itemVariants}
+            className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-2xl"
+          >
+            <span className="bg-gradient-to-r from-yellow-400 to-yellow-200 bg-clip-text text-transparent">
+              GLA University
+            </span><br />
+            Lost & Found Portal
+          </motion.h1>
           
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-12">
-            <div className="relative">
+          <motion.p 
+            variants={itemVariants}
+            className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto"
+          >
+            Official digital platform for reuniting lost items with their owners across our 110-acre campus
+          </motion.p>
+
+          <motion.div 
+            variants={itemVariants}
+            className="max-w-2xl mx-auto mb-12"
+          >
+            <div className="relative group">
               <input
                 type="text"
                 placeholder="Search lost items..."
-                className="w-full px-6 py-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                className="w-full px-6 py-4 rounded-xl border-0 bg-white/10 backdrop-blur-lg text-white placeholder-gray-200 focus:ring-2 focus:ring-yellow-400 shadow-xl"
               />
-              <button className="absolute right-3 top-3 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+              <button className="absolute right-3 top-3 p-3 bg-yellow-400 text-gray-900 rounded-xl hover:bg-yellow-300 transition-all shadow-md">
                 <FiSearch className="h-6 w-6" />
               </button>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Quick Actions */}
-          <div className="flex flex-col md:flex-row justify-center gap-4">
-            <Link 
-              to="/lost"
-              className="flex items-center justify-center px-8 py-3 border-2 border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-            >
-              <FiClock className="mr-2" />
-              Report Lost Item
-            </Link>
-            <Link 
-              to="/found"
-              className="flex items-center justify-center px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            >
-              <FiCheckCircle className="mr-2" />
-              Report Found Item
-            </Link>
-          </div>
+          <motion.div 
+            variants={containerVariants}
+            className="flex flex-col md:flex-row justify-center gap-4"
+          >
+            <motion.div variants={itemVariants}>
+              <a 
+                href="/lost"
+                className="flex items-center justify-center px-8 py-3 bg-white/10 backdrop-blur-lg text-white rounded-xl hover:bg-white/20 transition-all shadow-lg hover:shadow-xl"
+              >
+                <FiClock className="mr-2 text-yellow-400" />
+                Report Lost Item
+              </a>
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <a 
+                href="/found"
+                className="flex items-center justify-center px-8 py-3 bg-yellow-400 text-gray-900 rounded-xl hover:bg-yellow-300 transition-all shadow-lg hover:shadow-xl"
+              >
+                <FiCheckCircle className="mr-2" />
+                Report Found Item
+              </a>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* How It Works */}
       <section className="py-20 bg-white dark:bg-gray-800">
@@ -106,25 +161,37 @@ const Home = () => {
       </section>
 
       {/* Statistics */}
-      <section className="py-20">
+      <motion.section 
+        ref={statsRef}
+        initial="hidden"
+        animate={statsInView ? "visible" : "hidden"}
+        variants={containerVariants}
+        className="py-20"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { number: '95%', label: 'Recovery Rate' },
-              { number: '24h', label: 'Average Response' },
+              { number: '24h', label: 'Response Time' },
               { number: '10k+', label: 'Items Reunited' },
-              { number: '99%', label: 'User Satisfaction' },
+              { number: '99%', label: 'Satisfaction' },
             ].map((stat, index) => (
-              <div key={stat.label} className="p-6">
-                <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              <motion.div 
+                key={stat.label}
+                variants={itemVariants}
+                className={`p-6 rounded-2xl ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'} transition-all shadow-lg hover:shadow-xl`}
+              >
+                <div className={`text-4xl font-bold mb-2 ${theme === 'dark' ? 'text-yellow-400' : 'text-blue-600'}`}>
                   {stat.number}
                 </div>
-                <div className="text-gray-600 dark:text-gray-400">{stat.label}</div>
-              </div>
+                <div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {stat.label}
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Recent Finds */}
       <section className="py-20 bg-gray-50 dark:bg-gray-800">

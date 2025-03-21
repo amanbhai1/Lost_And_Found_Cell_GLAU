@@ -18,45 +18,6 @@ import Footer from "./Footer/Footer.jsx";
 import ProtectedRoute from './ProtectedRoute.js';
 import Confirm from './confirmation_page/Confirm.jsx';
 
-import { MsalProvider, useMsal } from "@azure/msal-react";
-import { PublicClientApplication, LogLevel } from "@azure/msal-browser";
-
-const msalConfig = {
-  auth: {
-    clientId: "0ab57f1a-6d44-4dfd-b784-55300e2d114b",
-    authority: "https://login.microsoftonline.com/91cc1fb6-1275-4acf-b3ea-c213ec16257b",
-    redirectUri: "https://osoc-lost-and-found-webapp.netlify.app/", // Update this with your redirect URI
-  },
-  cache: {
-    cacheLocation: "localStorage",
-    storeAuthStateInCookie: false,
-  },
-  system: {
-    loggerOptions: {
-      loggerCallback: (level, message, containsPii) => {
-        if (containsPii) {
-          return;
-        }
-        switch (level) {
-          case LogLevel.Error:
-            console.error(message);
-            return;
-          case LogLevel.Info:
-            console.info(message);
-            return;
-          case LogLevel.Verbose:
-            console.debug(message);
-            return;
-          case LogLevel.Warning:
-            console.warn(message);
-            return;
-          default:
-            return;
-        }
-      },
-    },
-  },
-};
 
 const App = () => {
   const [theme, setTheme] = useState('light');
@@ -81,7 +42,6 @@ const App = () => {
   };
 
   return (
-    <MsalProvider instance={new PublicClientApplication(msalConfig)}>
       <Router>
         {showConfirmPage ?
           <Confirm func={showConfirm} /> :
@@ -112,7 +72,6 @@ const App = () => {
             <Footer />
           </>)}
       </Router>
-    </MsalProvider>
   );
 };
 
@@ -120,12 +79,6 @@ const App = () => {
 
 // Sign-out component to handle sign-out process
 const SignOut = () => {
-  const { instance } = useMsal();
-
-  useEffect(() => {
-    instance.logout();
-  }, [instance]);
-
   return (
     <div>
       <h1>Signing Out...</h1>

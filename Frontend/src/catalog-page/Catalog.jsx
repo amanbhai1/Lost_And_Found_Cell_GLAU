@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiCalendar, FiX } from 'react-icons/fi';
+import { FiSearch, FiCalendar, FiX, FiCheckCircle, FiChevronRight } from 'react-icons/fi';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import loading from "./loading.gif";
+import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
 
 const Catalog = ({ theme }) => {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,19 +16,33 @@ const Catalog = ({ theme }) => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const host = "http://localhost:5000";
-
-  // Sample categories - replace with your actual categories
-  const categories = [
-    'Electronics', 'Documents', 'Accessories',
-    'Clothing', 'Books', 'Others'
-  ];
+  const [categories, setCategories] = useState([]);
+  const [openClaimDialog, setOpenClaimDialog] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [claimDetails, setClaimDetails] = useState({
+    details: '',
+    name: '',
+    email: '',
+    sapId: '',
+    branch: '',
+    year: '',
+    contactNumber: ''
+  });
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await fetch(`${host}/getLostItems`);
-        const data = await response.json();
-        setItems(data.data || []);
+        const foundResponse = await fetch(`${host}/getAllItems`);
+        const foundData = await foundResponse.json();
+        
+        // Use only found items
+        const foundItems = foundData.data?.map(item => ({ ...item, type: 'found' })) || [];
+        
+        // Extract unique categories from found items
+        const uniqueCategories = [...new Set(foundItems.map(item => item.category))];
+        setCategories(['all', ...uniqueCategories.filter(Boolean)]);
+        setItems(foundItems);
+        
       } catch (error) {
         console.error('Fetch error:', error);
       } finally {
@@ -59,6 +76,52 @@ const Catalog = ({ theme }) => {
     setDateRange([null, null]);
   };
 
+  const handleClaimOpen = (itemId) => {
+    setSelectedItemId(itemId);
+    setOpenClaimDialog(true);
+  };
+
+  const handleClaimClose = () => {
+    setOpenClaimDialog(false);
+    setClaimDetails({
+      details: '',
+      name: '',
+      email: '',
+      sapId: '',
+      branch: '',
+      year: '',
+      contactNumber: ''
+    });
+  };
+
+  const handleClaimSubmit = async () => {
+    try {
+      if (!claimDetails.details || !claimDetails.name || !claimDetails.email || 
+          !claimDetails.sapId || !claimDetails.contactNumber) {
+        alert('Please fill all required fields');
+        return;
+      }
+
+      const response = await fetch(`${host}/claimItem/${selectedItemId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(claimDetails)
+      });
+
+      if (response.ok) {
+        alert('Claim request submitted successfully!');
+        handleClaimClose();
+      } else {
+        alert('Failed to submit claim request');
+      }
+    } catch (error) {
+      console.error('Claim error:', error);
+      alert('An error occurred while submitting your claim');
+    }
+  };
+
   return (
     <div className={`min-h-screen p-8 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
@@ -71,10 +134,10 @@ const Catalog = ({ theme }) => {
           <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${
             theme === 'dark' ? 'text-white' : 'text-gray-900'
           }`}>
-            Lost Items Catalog
+            Found Items Catalog
           </h1>
           <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            Browse through all lost items and help reunite them with their owners
+            Browse through all found items and help reunite them with their owners
           </p>
         </motion.div>
 
@@ -177,7 +240,7 @@ const Catalog = ({ theme }) => {
                   <div className="relative h-48 overflow-hidden">
                     {item.images?.length > 0 ? (
                       <img
-                        src={`${host}/lostItemImages/${item.images[0]}`}
+                        src={`${host}${item.images[0]}`}
                         alt={item.itemName}
                         className="w-full h-full object-cover"
                       />
@@ -216,7 +279,7 @@ const Catalog = ({ theme }) => {
                       {item.description?.substring(0, 100)}...
                     </p>
 
-                    <div className={`flex items-center justify-between text-sm ${
+                    <div className={`flex items-center justify-between text-sm mb-4 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                     }`}>
                       <span>
@@ -225,6 +288,31 @@ const Catalog = ({ theme }) => {
                       <span>
                         {item.location || 'Unknown location'}
                       </span>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleClaimOpen(item._id)}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg ${
+                          theme === 'dark'
+                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white'
+                        } transition-all`}
+                      >
+                        <FiCheckCircle />
+                        <span>Claim</span>
+                      </button>
+                      <button
+                        onClick={() => navigate(`/details/${item._id}`)}
+                        className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg ${
+                          theme === 'dark'
+                            ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                        } transition-all`}
+                      >
+                        <span>Details</span>
+                        <FiChevronRight className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -255,6 +343,91 @@ const Catalog = ({ theme }) => {
           </div>
         )}
       </div>
+
+      <Dialog 
+        open={openClaimDialog} 
+        onClose={handleClaimClose}
+        PaperProps={{
+          className: `${theme === 'dark' ? '!bg-gray-800' : ''} rounded-2xl`
+        }}
+      >
+        <DialogTitle className={`${theme === 'dark' ? '!text-white' : ''}`}>
+          Claim Item Details
+        </DialogTitle>
+        <DialogContent>
+          <div className="space-y-4 py-4">
+            <TextField
+              label="Claim Details"
+              value={claimDetails.details}
+              onChange={(e) => setClaimDetails({...claimDetails, details: e.target.value})}
+              multiline
+              rows={4}
+              required
+              fullWidth
+              className={`${theme === 'dark' ? '!text-white' : ''}`}
+              InputProps={{
+                className: theme === 'dark' ? '!text-white' : ''
+              }}
+            />
+            <TextField
+              label="Full Name"
+              value={claimDetails.name}
+              onChange={(e) => setClaimDetails({...claimDetails, name: e.target.value})}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={claimDetails.email}
+              onChange={(e) => setClaimDetails({...claimDetails, email: e.target.value})}
+              required
+              fullWidth
+            />
+            <TextField
+              label="SAP ID"
+              value={claimDetails.sapId}
+              onChange={(e) => setClaimDetails({...claimDetails, sapId: e.target.value})}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Contact Number"
+              value={claimDetails.contactNumber}
+              onChange={(e) => setClaimDetails({...claimDetails, contactNumber: e.target.value})}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Branch"
+              value={claimDetails.branch}
+              onChange={(e) => setClaimDetails({...claimDetails, branch: e.target.value})}
+              fullWidth
+            />
+            <TextField
+              label="Year"
+              value={claimDetails.year}
+              onChange={(e) => setClaimDetails({...claimDetails, year: e.target.value})}
+              fullWidth
+            />
+          </div>
+        </DialogContent>
+        <DialogActions className="px-6 pb-4">
+          <Button 
+            onClick={handleClaimClose}
+            className={`${theme === 'dark' ? '!text-gray-300' : ''}`}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleClaimSubmit}
+            variant="contained" 
+            className="!bg-gradient-to-r !from-blue-600 !to-purple-600 hover:!from-blue-700 hover:!to-purple-700 !text-white !rounded-lg !px-6 !py-2"
+          >
+            Submit Claim
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

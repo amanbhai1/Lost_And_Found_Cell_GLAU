@@ -60,16 +60,6 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-// MSAL Configuration
-const config = {
-  auth: {
-    clientId: "0ab57f1a-6d44-4dfd-b784-55300e2d114b",
-    authority: "https://login.microsoftonline.com/91cc1fb6-1275-4acf-b3ea-c213ec16257b",
-    clientSecret: "cq.8Q~QbrklT5oJNppeit3zvRc7CnElxJghABaqaT",
-  },
-};
-
-const pca = new msal.ConfidentialClientApplication(config);
 
 const authCodeUrlParameters = {
   scopes: ["user.read"],

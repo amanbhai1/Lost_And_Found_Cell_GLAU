@@ -60,7 +60,7 @@ const App = () => {
               <Route path="/about" element={<AboutUs theme={theme} />} />
               {/* Protected routes */}
               <Route path="/home" element={<ProtectedRoute><Home theme={theme} /></ProtectedRoute>} />
-              <Route path="/catalog" element={<ProtectedRoute><Catalog theme={theme} /></ProtectedRoute>} />
+              <Route path="/categories" element={<ProtectedRoute><Catalog theme={theme} /></ProtectedRoute>} />
               <Route path="/lost" element={<ProtectedRoute><LostUpload theme={theme} /></ProtectedRoute>} />
               <Route path="/found" element={<ProtectedRoute><FoundUpload theme={theme} /></ProtectedRoute>} />
               <Route path="/feedback" element={<ProtectedRoute><FeedbackForm theme={theme} /></ProtectedRoute>} />

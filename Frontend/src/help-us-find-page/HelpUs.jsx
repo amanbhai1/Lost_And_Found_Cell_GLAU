@@ -56,7 +56,7 @@ const HelpUs = ({ theme }) => {
         {isLoading ? (
           <div className="flex justify-center my-20">
             <img src={loading} alt="loading" className="w-20 h-20" />
-          </div>
+            </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {lostItems.length > 0 ? (
@@ -117,10 +117,10 @@ const HelpUs = ({ theme }) => {
                         View Details
                       </Link>
                     </div>
-                  </div>
+                </div>
                 </motion.div>
               ))
-            ) : (
+              ) : (
               <div className="col-span-full text-center py-12">
                 <div className={`text-2xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                   No lost items to display
@@ -133,7 +133,7 @@ const HelpUs = ({ theme }) => {
           </div>
         )}
       </motion.div>
-    </div>
+        </div>
   );
 };
 

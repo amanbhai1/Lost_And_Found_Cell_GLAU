@@ -28,11 +28,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: 'http://localhost:3000',
-  credentials: true
+  credentials: true,
+  exposedHeaders: ['Content-Length', 'Content-Type']
 }));
 
 // Add security middleware before routes
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "img-src": ["'self'", "data:", "http://localhost:5000"]
+    }
+  }
+}));
 app.use(mongoSanitize());
 
 // Rate limiting for API routes
@@ -291,6 +300,53 @@ app.post('/claimItem/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to claim item',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Add this route before the static files section
+app.get('/api/getItemDetails/:id', async (req, res) => {
+  try {
+    // Check both collections with proper error handling
+    const foundItem = await FoundItem.findById(req.params.id).lean();
+    if (foundItem) {
+      return res.json({
+        success: true,
+        item: {
+          ...foundItem,
+          type: 'found',
+          images: foundItem.images.map(img => `/foundItemImages/${img}`),
+          location: foundItem.place,
+          contactInfo: foundItem.ownerName || 'Not provided'
+        }
+      });
+    }
+
+    const lostItem = await LostItem.findById(req.params.id).lean();
+    if (lostItem) {
+      return res.json({
+        success: true,
+        item: {
+          ...lostItem,
+          type: 'lost',
+          images: lostItem.images.map(img => `/lostItemImages/${img}`),
+          location: lostItem.place,
+          contactInfo: `Name: ${lostItem.name}, Phone: ${lostItem.phone}`
+        }
+      });
+    }
+
+    res.status(404).json({ 
+      success: false,
+      message: 'Item not found' 
+    });
+
+  } catch (error) {
+    console.error("Error fetching item details:", error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Switch from 'react-switch';
 import logo from '../images/Logofornavbar.png';
+import { FiX } from 'react-icons/fi';
 
 const categories = [
   { 
@@ -36,6 +37,8 @@ const FoundUpload = (props) => {
     isIdentifiable: false
   });
 
+  const [previewUrls, setPreviewUrls] = useState([]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -43,7 +46,49 @@ const FoundUpload = (props) => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setFormData(prev => ({ ...prev, images: files }));
+    if (files.length + formData.images.length > 6) {
+      alert('Maximum 6 images allowed');
+      return;
+    }
+    
+    const newFiles = files.slice(0, 6 - formData.images.length);
+    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+    
+    setFormData(prev => ({ ...prev, images: [...prev.images, ...newFiles] }));
+    setPreviewUrls(prev => [...prev, ...newPreviews]);
+  };
+
+  const handleRemoveImage = (index) => {
+    const newImages = [...formData.images];
+    const newPreviews = [...previewUrls];
+    
+    newImages.splice(index, 1);
+    newPreviews.splice(index, 1);
+    
+    setFormData(prev => ({ ...prev, images: newImages }));
+    setPreviewUrls(newPreviews);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length + formData.images.length > 6) {
+      alert('Maximum 6 images allowed');
+      return;
+    }
+    
+    const newFiles = files.slice(0, 6 - formData.images.length);
+    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+    
+    setFormData(prev => ({ ...prev, images: [...prev.images, ...newFiles] }));
+    setPreviewUrls(prev => [...prev, ...newPreviews]);
   };
 
   const handleSubmit = async (e) => {
@@ -194,17 +239,68 @@ const FoundUpload = (props) => {
           {/* Item Image */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">Item Images (Max 6)</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300/20 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-transparent file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              required
-            />
-            <p className="text-sm text-gray-500">
-              {formData.images.length} image(s) selected
-            </p>
+            <div 
+              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                ${props.theme === 'dark' ? 'border-gray-600 hover:border-blue-500' : 'border-gray-300 hover:border-blue-400'}`}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+                id="imageUpload"
+              />
+              <label htmlFor="imageUpload" className="cursor-pointer">
+                <div className="space-y-2">
+                  <svg 
+                    className="mx-auto h-12 w-12 text-gray-400" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
+                    />
+                  </svg>
+                  <p className="text-sm">
+                    Drag & drop images here or click to upload<br />
+                    (Maximum 6 images, 2MB each)
+                  </p>
+                </div>
+              </label>
+              
+              {/* Image Previews */}
+              <div className="mt-4 grid grid-cols-3 gap-4">
+                {previewUrls.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      className="h-32 w-full object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {previewUrls.length > 0 && (
+                <p className="mt-2 text-sm text-gray-500">
+                  {previewUrls.length} image(s) selected
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Identifiable Switch */}

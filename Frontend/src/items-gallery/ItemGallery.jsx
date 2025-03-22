@@ -163,9 +163,9 @@ const ItemGallery = (props) => {
                   whileHover="hover"
                   className="group relative h-96 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all"
                 >
-                  {item.itemImage ? (
+                  {item.images?.length > 0 ? (
                     <img 
-                      src={`${host}/foundItemImages/${item.itemImage}`} 
+                      src={`${host}${item.images[0]}`}
                       alt={item.itemName} 
                       className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
                     />

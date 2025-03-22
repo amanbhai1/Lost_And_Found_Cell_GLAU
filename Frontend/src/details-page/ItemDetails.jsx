@@ -17,13 +17,18 @@ const ItemDetails = ({ theme }) => {
       try {
         const response = await fetch(`${host}/api/getItemDetails/${id}`);
         const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch item');
+        }
+
         if (data.success) {
           setItem(data.item);
         } else {
-          setError('Item not found');
+          setError(data.message || 'Item not found');
         }
       } catch (err) {
-        setError('Failed to fetch item details');
+        setError(err.message || 'Failed to fetch item details');
       } finally {
         setIsLoading(false);
       }
@@ -97,7 +102,7 @@ const ItemDetails = ({ theme }) => {
             {item.images?.length > 0 ? (
               <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-white/20 shadow-xl">
                 <img
-                  src={`${host}/lostItemImages/${item.images[0]}`}
+                  src={`${host}${item.images[0]}`}
                   alt={item.itemName}
                   className="w-full h-full object-cover"
                 />
@@ -130,7 +135,7 @@ const ItemDetails = ({ theme }) => {
                 {item.images?.length > 0 ? (
                   <>
                     <img
-                      src={`${host}/lostItemImages/${item.images[0]}`}
+                      src={`${host}${item.images[0]}`}
                       alt={item.itemName}
                       className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
                     />
@@ -152,7 +157,7 @@ const ItemDetails = ({ theme }) => {
                     className="aspect-square rounded-xl overflow-hidden relative group cursor-pointer"
                   >
                     <img
-                      src={`${host}/lostItemImages/${image}`}
+                      src={`${host}${image}`}
                       alt={`${item.itemName} ${index + 1}`}
                       className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
                     />

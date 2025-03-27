@@ -1,6 +1,7 @@
 import express from 'express';
 import { body } from 'express-validator';
 import { registerUser, loginUser, sendOTP } from '../controllers/authController.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
@@ -32,5 +33,35 @@ router.post('/login',
 );
 
 router.post('/send-otp', sendOTP);
+
+router.get('/check', (req, res) => {
+  const token = req.cookies.authToken;
+  
+  if (!token) {
+    return res.json({ authenticated: false });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.json({
+      authenticated: true,
+      user: {
+        id: decoded.userId,
+        role: decoded.role
+      }
+    });
+  } catch (error) {
+    res.json({ authenticated: false });
+  }
+});
+
+export const logoutUser = (req, res) => {
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  res.json({ success: true, message: 'Logged out successfully' });
+};
 
 export default router; 

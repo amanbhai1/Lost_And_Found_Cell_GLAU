@@ -19,6 +19,9 @@ import Faq from "./faq/Faq.jsx";
 import Footer from "./Footer/Footer.jsx";
 import ProtectedRoute from './ProtectedRoute.js';
 import Confirm from './confirmation_page/Confirm.jsx';
+// import Account from './pages/Account.jsx';
+import Profile from './components/Profile.jsx';
+import AccountSettings from './components/AccountSettings.jsx';
 
 
 const App = () => {
@@ -59,7 +62,9 @@ const App = () => {
               <Route path="/contact" element={<Contact theme={theme} />} />
               <Route path="/about" element={<AboutUs theme={theme} />} />
               {/* Protected routes */}
-              <Route path="/home" element={<ProtectedRoute><Home theme={theme} /></ProtectedRoute>} />
+              <Route path="/home" element={<Home theme={theme} />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile theme={theme} /></ProtectedRoute>} />
+              <Route path="/account" element={<ProtectedRoute><AccountSettings theme={theme} /></ProtectedRoute>} />
               <Route path="/categories" element={<ProtectedRoute><Catalog theme={theme} /></ProtectedRoute>} />
               <Route path="/lost" element={<ProtectedRoute><LostUpload theme={theme} /></ProtectedRoute>} />
               <Route path="/found" element={<ProtectedRoute><FoundUpload theme={theme} /></ProtectedRoute>} />

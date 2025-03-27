@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { Link, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiImage, FiClock, FiCheckCircle, FiChevronRight } from 'react-icons/fi';
+import { FiImage, FiClock, FiCheckCircle, FiChevronRight, FiAlertTriangle } from 'react-icons/fi';
 import loading from "./loading.gif";
 import dark from './dark.jpg';
 
@@ -127,27 +127,40 @@ const ItemGallery = (props) => {
     <div className={`min-h-screen p-4 md:p-8 ${props.theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            {category || 'All Items'}
-          </h1>
-          <Link 
-            to="/categories" 
-            className={`inline-flex items-center text-lg ${
-              props.theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <FiChevronRight className="rotate-180 mr-1" />
-            Back to Categories
-          </Link>
+          <div className="flex items-center gap-4 mb-8">
+            <Link 
+              to="/categories" 
+              className={`p-2 rounded-lg flex items-center ${
+                props.theme === 'dark' 
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                  : 'bg-white text-gray-600 hover:bg-gray-50'
+              } shadow-md transition-all`}
+            >
+              <FiChevronRight className="rotate-180" />
+            </Link>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {category || 'All Items'}
+            </h1>
+          </div>
+          
+          {category && (
+            <p className="text-lg text-gray-500 dark:text-gray-400">
+              Showing items in <span className="font-semibold text-blue-600">{category}</span>
+            </p>
+          )}
         </motion.div>
 
         {spinner ? (
-          <div className="flex justify-center my-20">
-            <img src={loading} alt="loading" className="w-20 h-20 animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="h-96 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse">
+                <div className="h-full w-full bg-gray-200 dark:bg-gray-700 rounded-2xl" />
+              </div>
+            ))}
           </div>
         ) : (
           <AnimatePresence>
@@ -159,15 +172,19 @@ const ItemGallery = (props) => {
                   initial="hidden"
                   animate="visible"
                   exit="hidden"
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.1, type: 'spring' }}
                   whileHover="hover"
-                  className="group relative h-96 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all"
+                  className="group relative h-96 rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all"
                 >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
+                  
                   {item.images?.length > 0 ? (
-                    <img 
+                    <motion.img 
                       src={`${host}${item.images[0]}`}
-                      alt={item.itemName} 
-                      className="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
+                      alt={item.itemName}
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.3 }}
                     />
                   ) : (
                     <div className={`w-full h-full flex flex-col items-center justify-center ${
@@ -178,29 +195,31 @@ const ItemGallery = (props) => {
                     </div>
                   )}
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent flex flex-col justify-end p-6">
-                    <div className="space-y-3">
-                      <div className="flex items-center text-sm text-gray-200">
-                        <FiClock className="mr-2" />
-                        {new Date(item.date).toLocaleDateString()}
-                      </div>
-                      <h3 className="text-xl font-semibold text-white">{item.itemName}</h3>
-                      <div className="flex gap-3">
-                        <Link
-                          to={`/details/${item._id}`}
-                          className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg backdrop-blur-sm bg-white/10 hover:bg-white/20 text-white transition-all"
-                        >
-                          <FiChevronRight className="-rotate-90" />
-                          <span>Details</span>
-                        </Link>
-                        <button
-                          onClick={() => handleClaimItem(item._id)}
-                          className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white transition-all"
-                        >
-                          <FiCheckCircle />
-                          <span>Claim</span>
-                        </button>
-                      </div>
+                  <div className="absolute bottom-0 left-0 right-0 z-20 p-6 space-y-4">
+                    <div className="flex items-center text-sm text-gray-200 gap-2">
+                      <FiClock className="flex-shrink-0" />
+                      <span>{new Date(item.date).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold text-white">{item.itemName}</h3>
+                    
+                    <div className="flex gap-3">
+                      <Link
+                        to={`/details/${item._id}`}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl backdrop-blur-sm bg-white/10 hover:bg-white/20 text-white transition-all"
+                      >
+                        <span>Details</span>
+                        <FiChevronRight className="-rotate-90" />
+                      </Link>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleClaimItem(item._id)}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white shadow-lg hover:shadow-emerald-500/30 transition-all"
+                      >
+                        <FiCheckCircle />
+                        <span>Claim</span>
+                      </motion.button>
                     </div>
                   </div>
                 </motion.div>
@@ -214,105 +233,54 @@ const ItemGallery = (props) => {
         open={open} 
         onClose={handleClose}
         PaperProps={{
-          className: `${props.theme === 'dark' ? '!bg-gray-800 !text-white' : ''} rounded-2xl`
+          className: `${props.theme === 'dark' ? '!bg-gray-800 !text-white' : ''} rounded-3xl backdrop-blur-lg bg-white/90`
         }}
       >
-        <DialogTitle className={`${props.theme === 'dark' ? '!text-white' : ''}`}>Enter Your Details</DialogTitle>
+        <DialogTitle className="text-2xl font-bold text-center pt-8">
+          Claim Item
+          <div className="mt-2 w-12 h-1 bg-blue-500 rounded-full mx-auto" />
+        </DialogTitle>
+        
         <DialogContent>
           <div className="space-y-4 py-4">
-            <TextField
-              label="Details"
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              multiline
-              rows={4}
-              required
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="SAP ID"
-              value={sapId}
-              onChange={(e) => setSapId(e.target.value)}
-              required
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="Branch"
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="Year"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="Contact Number"
-              value={contactNumber}
-              onChange={(e) => setContactNumber(e.target.value)}
-              required
-              fullWidth
-              className={`${props.theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: props.theme === 'dark' ? '!text-white' : ''
-              }}
-            />
+            {['details', 'name', 'email', 'sapId', 'branch', 'year', 'contactNumber'].map((field) => (
+              <TextField
+                key={field}
+                label={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                value={eval(field)}
+                onChange={(e) => eval(`set${field.charAt(0).toUpperCase() + field.slice(1)}(e.target.value)`)}
+                required={['details', 'name', 'email', 'sapId', 'contactNumber'].includes(field)}
+                fullWidth
+                variant="outlined"
+                className="rounded-xl"
+                InputProps={{
+                  className: `${props.theme === 'dark' ? '!text-white' : ''} rounded-xl`,
+                  endAdornment: field === 'details' && <FiAlertTriangle className="text-gray-400 ml-2" />
+                }}
+              />
+            ))}
           </div>
         </DialogContent>
-        <DialogActions className="px-6 pb-4">
+        
+        <DialogActions className="px-6 pb-6 gap-3">
           <Button 
             onClick={handleClose}
-            className={`${props.theme === 'dark' ? '!text-gray-300' : ''} hover:!bg-gray-100`}
+            className={`rounded-lg px-6 py-2 ${
+              props.theme === 'dark' 
+                ? '!text-gray-300 hover:!bg-gray-700' 
+                : '!text-gray-600 hover:!bg-gray-100'
+            }`}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handleSubmit} 
-            variant="contained" 
-            className="!bg-gradient-to-r !from-blue-600 !to-purple-600 hover:!from-blue-700 hover:!to-purple-700 !text-white !rounded-lg !px-6 !py-2"
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSubmit}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg px-8 py-3 shadow-lg transition-all"
           >
-            Claim
-          </Button>
+            Submit Claim
+          </motion.button>
         </DialogActions>
       </Dialog>
     </div>

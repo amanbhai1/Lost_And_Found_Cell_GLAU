@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiCalendar, FiX, FiCheckCircle, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiCalendar, FiX, FiCheckCircle, FiChevronRight, FiMapPin, FiMail, FiPlus, FiSliders, FiHeart } from 'react-icons/fi';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import loading from "./loading.gif";
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
+import { TbZoomQuestion } from 'react-icons/tb';
 
 const Catalog = ({ theme }) => {
   const navigate = useNavigate();
@@ -127,24 +128,31 @@ const Catalog = ({ theme }) => {
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mb-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12 text-center relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10"
         >
-          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${
-            theme === 'dark' ? 'text-white' : 'text-gray-900'
-          }`}>
-            Found Items Catalog
-          </h1>
-          <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            Browse through all found items and help reunite them with their owners
-          </p>
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-cyan-500/5 animate-gradient-pan" />
+          <div className="relative py-20 px-8 space-y-4">
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="inline-block bg-gradient-to-r from-emerald-500 to-cyan-500 p-1 rounded-full"
+            >
+              <div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} rounded-full px-6 py-2 text-sm font-semibold`}>
+                🎉 1000+ Items Reunited
+              </div>
+            </motion.div>
+            <h1 className={`text-5xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-emerald-500 to-cyan-500 bg-clip-text text-transparent`}>
+              Lost & Found Hub
+            </h1>
+          </div>
         </motion.div>
 
         {/* Filters Section */}
-        <div className={`mb-8 p-6 rounded-xl ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
-        }`}>
+        <div className={`mb-8 p-6 rounded-2xl backdrop-blur-lg ${
+          theme === 'dark' ? 'bg-gray-800/80 border border-gray-700' : 'bg-white/90 border border-gray-100'
+        } shadow-xl`}>
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center w-full md:w-auto">
               <FiSearch className={`mr-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`} />
@@ -161,22 +169,25 @@ const Catalog = ({ theme }) => {
               />
             </div>
 
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className={`p-2 rounded-lg border ${
-                  theme === 'dark' 
-                    ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-gray-50 border-gray-200'
-                }`}
-              >
-                <option value="all">All Categories</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
+            <div className="flex flex-wrap gap-3 mb-6">
+              {categories.map(category => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === category
+                      ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white'
+                      : theme === 'dark' 
+                        ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
 
+            <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="relative">
                 <DatePicker
                   selectsRange
@@ -218,8 +229,10 @@ const Catalog = ({ theme }) => {
 
         {/* Items Grid */}
         {isLoading ? (
-          <div className="flex justify-center my-20">
-            <img src={loading} alt="loading" className="w-20 h-20" />
+          <div className="flex justify-center my-20 space-x-2">
+            <div className="w-4 h-4 bg-emerald-500 rounded-full animate-bounce"></div>
+            <div className="w-4 h-4 bg-cyan-500 rounded-full animate-bounce delay-100"></div>
+            <div className="w-4 h-4 bg-purple-500 rounded-full animate-bounce delay-200"></div>
           </div>
         ) : (
           <AnimatePresence>
@@ -233,17 +246,34 @@ const Catalog = ({ theme }) => {
                   exit="hidden"
                   transition={{ delay: index * 0.1 }}
                   whileHover="hover"
-                  className={`rounded-xl overflow-hidden shadow-lg ${
+                  className={`rounded-2xl overflow-hidden shadow-xl ${
                     theme === 'dark' ? 'bg-gray-800' : 'bg-white'
                   }`}
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-56 overflow-hidden group">
+                    <div className="absolute top-4 right-4 z-10 flex gap-2">
+                      <button className={`p-2 rounded-full backdrop-blur-sm ${
+                        theme === 'dark' ? 'bg-gray-800/30 text-red-400' : 'bg-white/30 text-red-500'
+                      }`}>
+                        <FiHeart className="w-5 h-5" />
+                      </button>
+                      {item.resolved && (
+                        <div className={`px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${
+                          theme === 'dark' ? 'bg-emerald-800/30 text-emerald-300' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          Resolved
+                        </div>
+                      )}
+                    </div>
                     {item.images?.length > 0 ? (
-                      <img
-                        src={`${host}${item.images[0]}`}
-                        alt={item.itemName}
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        <img
+                          src={`${host}${item.images[0]}`}
+                          alt={item.itemName}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                      </>
                     ) : (
                       <div className={`w-full h-full flex items-center justify-center ${
                         theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
@@ -255,63 +285,59 @@ const Catalog = ({ theme }) => {
                         </span>
                       </div>
                     )}
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className={`flex items-center space-x-2 text-sm ${
+                        theme === 'dark' ? 'text-gray-200' : 'text-white'
+                      }`}>
+                        <FiMapPin className="flex-shrink-0" />
+                        <span>{item.location || 'Unknown location'}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className={`text-lg font-semibold ${
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className={`text-xl font-bold ${
                         theme === 'dark' ? 'text-white' : 'text-gray-900'
                       }`}>
                         {item.itemName}
                       </h3>
-                      <span className={`text-sm px-2 py-1 rounded-full ${
+                      <span className={`text-xs px-2.5 py-1 rounded-full ${
                         theme === 'dark' 
-                          ? 'bg-gray-700 text-gray-300' 
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-gray-700/50 text-emerald-400' 
+                          : 'bg-gray-100 text-emerald-600'
                       }`}>
-                        {item.category || 'Uncategorized'}
-                      </span>
-                    </div>
-
-                    <p className={`text-sm mb-3 ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}>
-                      {item.description?.substring(0, 100)}...
-                    </p>
-
-                    <div className={`flex items-center justify-between text-sm mb-4 ${
-                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                      <span>
                         {new Date(item.date).toLocaleDateString()}
                       </span>
-                      <span>
-                        {item.location || 'Unknown location'}
-                      </span>
                     </div>
 
-                    <div className="flex gap-3">
+                    <p className={`text-sm mb-4 ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      {item.description?.substring(0, 120)}...
+                    </p>
+
+                    <div className="flex gap-2">
                       <button
                         onClick={() => handleClaimOpen(item._id)}
-                        className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg ${
+                        className={`flex items-center justify-center space-x-2 py-2.5 px-5 rounded-xl ${
                           theme === 'dark'
-                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                            ? 'bg-emerald-600/90 hover:bg-emerald-700 text-white'
                             : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white'
-                        } transition-all`}
+                        } transition-all group`}
                       >
-                        <FiCheckCircle />
-                        <span>Claim</span>
+                        <FiCheckCircle className="group-hover:animate-pulse" />
+                        <span>Claim Item</span>
                       </button>
                       <button
                         onClick={() => navigate(`/details/${item._id}`)}
-                        className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg ${
+                        className={`p-2.5 rounded-xl ${
                           theme === 'dark'
-                            ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                            ? 'bg-gray-700/50 hover:bg-gray-600/70 text-gray-300'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
                         } transition-all`}
                       >
-                        <span>Details</span>
-                        <FiChevronRight className="w-4 h-4" />
+                        <FiChevronRight className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
@@ -322,14 +348,26 @@ const Catalog = ({ theme }) => {
         )}
 
         {!isLoading && filteredItems.length === 0 && (
-          <div className={`text-center py-12 rounded-xl ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-          }`}>
-            <div className={`text-xl mb-2 ${
-              theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-            }`}>
-              No items found matching your criteria
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`text-center py-20 rounded-2xl ${
+              theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'
+            } backdrop-blur-lg`}
+          >
+            <div className="mb-6 inline-block p-6 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10">
+              <TbZoomQuestion className="w-16 h-16 text-emerald-500" />
             </div>
+            <h3 className={`text-2xl font-bold mb-2 ${
+              theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+            }`}>
+              No Items Found
+            </h3>
+            <p className={`mb-6 max-w-md mx-auto ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              Try adjusting your filters or check back later for new additions
+            </p>
             <button
               onClick={resetFilters}
               className={`mt-4 px-4 py-2 rounded-lg ${
@@ -340,76 +378,60 @@ const Catalog = ({ theme }) => {
             >
               Clear Filters
             </button>
-          </div>
+          </motion.div>
         )}
+      </div>
+
+      <div className="fixed bottom-8 right-8 md:hidden z-50">
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          className={`p-4 rounded-full shadow-xl ${
+            theme === 'dark' 
+              ? 'bg-emerald-600 text-white' 
+              : 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white'
+          }`}
+        >
+          <FiSliders className="w-6 h-6" />
+        </motion.button>
       </div>
 
       <Dialog 
         open={openClaimDialog} 
         onClose={handleClaimClose}
         PaperProps={{
-          className: `${theme === 'dark' ? '!bg-gray-800' : ''} rounded-2xl`
+          className: `${theme === 'dark' ? '!bg-gray-800' : ''} rounded-2xl !max-w-md`
         }}
       >
-        <DialogTitle className={`${theme === 'dark' ? '!text-white' : ''}`}>
-          Claim Item Details
+        <DialogTitle className={`${theme === 'dark' ? '!text-white' : ''} !pb-2`}>
+          <div className="text-2xl font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 bg-clip-text text-transparent">
+            Claim Request
+          </div>
+          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mt-1`}>
+            Please provide accurate details to verify your ownership
+          </p>
         </DialogTitle>
         <DialogContent>
           <div className="space-y-4 py-4">
-            <TextField
-              label="Claim Details"
-              value={claimDetails.details}
-              onChange={(e) => setClaimDetails({...claimDetails, details: e.target.value})}
-              multiline
-              rows={4}
-              required
-              fullWidth
-              className={`${theme === 'dark' ? '!text-white' : ''}`}
-              InputProps={{
-                className: theme === 'dark' ? '!text-white' : ''
-              }}
-            />
-            <TextField
-              label="Full Name"
-              value={claimDetails.name}
-              onChange={(e) => setClaimDetails({...claimDetails, name: e.target.value})}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Email"
-              type="email"
-              value={claimDetails.email}
-              onChange={(e) => setClaimDetails({...claimDetails, email: e.target.value})}
-              required
-              fullWidth
-            />
-            <TextField
-              label="SAP ID"
-              value={claimDetails.sapId}
-              onChange={(e) => setClaimDetails({...claimDetails, sapId: e.target.value})}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Contact Number"
-              value={claimDetails.contactNumber}
-              onChange={(e) => setClaimDetails({...claimDetails, contactNumber: e.target.value})}
-              required
-              fullWidth
-            />
-            <TextField
-              label="Branch"
-              value={claimDetails.branch}
-              onChange={(e) => setClaimDetails({...claimDetails, branch: e.target.value})}
-              fullWidth
-            />
-            <TextField
-              label="Year"
-              value={claimDetails.year}
-              onChange={(e) => setClaimDetails({...claimDetails, year: e.target.value})}
-              fullWidth
-            />
+            {Object.entries(claimDetails).map(([key, value]) => (
+              <TextField
+                key={key}
+                label={key.charAt(0).toUpperCase() + key.slice(1)}
+                value={value}
+                onChange={(e) => setClaimDetails({...claimDetails, [key]: e.target.value})}
+                fullWidth
+                variant="outlined"
+                className={`${theme === 'dark' ? '!text-white' : ''}`}
+                InputProps={{
+                  className: `rounded-xl ${theme === 'dark' ? '!text-white !bg-gray-700/20' : ''}`,
+                  endAdornment: (
+                    <motion.div whileHover={{ scale: 1.1 }}>
+                      {key === 'email' && <FiMail className="text-gray-400 ml-2" />}
+                    </motion.div>
+                  )
+                }}
+                required={['details', 'name', 'email', 'sapId', 'contactNumber'].includes(key)}
+              />
+            ))}
           </div>
         </DialogContent>
         <DialogActions className="px-6 pb-4">

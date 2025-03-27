@@ -2,7 +2,7 @@
 module.exports = {
     content: [
         './src/**/*.{js,jsx,ts,tsx}',
-        './public/index.html'
+        './node_modules/react-datepicker/dist/**/*.js'
     ],
     theme: {
       extend: {

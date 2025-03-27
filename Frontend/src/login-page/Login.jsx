@@ -24,6 +24,10 @@ const Login = ({ theme }) => {
       });
 
       if (response.data.message) {
+        // Store authentication data in localStorage
+        localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('userData', JSON.stringify(response.data.user));
+        
         setMessage({ type: 'success', content: 'Login successful! Redirecting...' });
         setTimeout(() => navigate('/home'), 1500);
       }

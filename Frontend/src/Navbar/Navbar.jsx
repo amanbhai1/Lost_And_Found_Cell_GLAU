@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiChevronDown, FiSearch, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiChevronDown, FiSearch, FiUser, FiLogOut, FiSettings } from 'react-icons/fi';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { FaTimes } from 'react-icons/fa';
-import { useMsal } from '@azure/msal-react';
 import Switch from 'react-switch';
 import logo from '../images/Logofornavbar.png';
 
@@ -12,13 +11,52 @@ const Navbar = ({ theme, toggleTheme }) => {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { accounts, instance } = useMsal();
-  const userAccount = accounts[0];
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [isReportDropdownOpen, setReportDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignOut = () => {
-    instance.logout();
-  };
+  const handleSignOut = useCallback(() => {
+    // Clear all auth-related storage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userData');
+    sessionStorage.removeItem('authToken');
+    document.cookie = 'authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax' + 
+      (window.location.protocol === 'https:' ? '; Secure' : '');
+    
+    // Reset state
+    setIsLoggedIn(false);
+    setUserData(null);
+    setDropdownOpen(false);
+    
+    // Force full page reload to clear any cached data
+    window.location.href = '/';
+  }, [navigate]);
+
+  const checkAuth = useCallback(() => {
+    const token = localStorage.getItem('authToken');
+    const storedUserData = localStorage.getItem('userData');
+    
+    if (token && storedUserData) {
+      try {
+        const user = JSON.parse(storedUserData);
+        setUserData(user);
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        handleSignOut();
+      }
+    } else {
+      setIsLoggedIn(false);
+      setUserData(null);
+    }
+  }, [handleSignOut]);
+
+  useEffect(() => {
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [checkAuth]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -26,8 +64,12 @@ const Navbar = ({ theme, toggleTheme }) => {
   };
 
   const handleProfileClick = () => {
-    if (!userAccount) {
+    // Force auth check before proceeding
+    checkAuth();
+    
+    if (!isLoggedIn) {
       navigate('/login');
+      setDropdownOpen(false);
     } else {
       setDropdownOpen(!isDropdownOpen);
     }
@@ -36,12 +78,12 @@ const Navbar = ({ theme, toggleTheme }) => {
   return (
     <nav className={`sticky top-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-50`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           
           {/* Logo */}
           <div className="flex items-center">
             <NavLink to="/" className="flex-shrink-0">
-              <img src={logo} alt="Logo" className="h-14 w-auto" />
+              <img src={logo} alt="Logo" className="h-20 w-auto" />
             </NavLink>
           </div>
 
@@ -56,29 +98,46 @@ const Navbar = ({ theme, toggleTheme }) => {
               Home
             </NavLink>
             
-            {/* Dropdown Menu */}
-            <div className="relative group">
-              <button className="flex items-center text-gray-700 dark:text-gray-300 px-3 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white transition-colors">
-                Report
-                <FiChevronDown className="ml-1.5 h-4 w-4 transform group-hover:rotate-180 transition-transform" />
-              </button>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none group-hover:pointer-events-auto">
-                <NavLink 
-                  to="/found" 
-                  className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            {/* Show Report dropdown only when logged in */}
+            {isLoggedIn && (
+              <div className="relative group">
+                <button 
+                  onMouseEnter={() => setReportDropdownOpen(true)}
+                  onMouseLeave={() => setReportDropdownOpen(false)}
+                  className="flex items-center text-gray-700 dark:text-gray-300 px-3 py-2 text-sm font-medium hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
-                  Report Found Item
-                </NavLink>
-                <NavLink 
-                  to="/lost" 
-                  className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  Report Lost Item
-                </NavLink>
+                  Report
+                  <FiChevronDown className={`ml-1.5 h-4 w-4 transform transition-transform ${
+                    isReportDropdownOpen ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                
+                {isReportDropdownOpen && (
+                  <div 
+                    className="absolute top-full left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700"
+                    onMouseEnter={() => setReportDropdownOpen(true)}
+                    onMouseLeave={() => setReportDropdownOpen(false)}
+                  >
+                    <NavLink 
+                      to="/found" 
+                      className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      onClick={() => setReportDropdownOpen(false)}
+                    >
+                      Report Found Item
+                    </NavLink>
+                    <NavLink 
+                      to="/lost" 
+                      className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                      onClick={() => setReportDropdownOpen(false)}
+                    >
+                      Report Lost Item
+                    </NavLink>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
-            {['items', 'helpusfind', 'faq', 'contact'].map((link) => (
+            {[...(isLoggedIn ? ['items'] : []), 'helpusfind', 'faq', 'contact', 'about'].map((link) => (
               <NavLink 
                 key={link}
                 to={`/${link}`} 
@@ -161,26 +220,39 @@ const Navbar = ({ theme, toggleTheme }) => {
                 <FiUser className="h-4 w-4" />
               </button>
               
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+              {/* Enhanced Profile Dropdown */}
+              {isDropdownOpen && isLoggedIn && (
+                <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                   <div className="p-4 border-b border-gray-100 dark:border-gray-700">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                        <FiUser className="h-5 w-5" />
+                        {userData?.initials || <FiUser className="h-5 w-5" />}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{userAccount?.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{userAccount?.username}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {userData?.name || 'User'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {userData?.email || ''}
+                        </p>
                       </div>
                     </div>
                   </div>
-                  <div className="p-2">
+                  <div className="p-2 space-y-1">
                     <NavLink
                       to="/profile"
                       className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      onClick={() => setDropdownOpen(false)}
                     >
                       <FiUser className="h-4 w-4" />
                       <span>Profile Settings</span>
+                    </NavLink>
+                    <NavLink
+                      to="/account"
+                      className="flex items-center space-x-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <FiSettings className="h-4 w-4" />
+                      <span>Account Settings</span>
                     </NavLink>
                     <button 
                       onClick={handleSignOut}
@@ -199,7 +271,7 @@ const Navbar = ({ theme, toggleTheme }) => {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden py-3 space-y-1 border-t border-gray-100 dark:border-gray-800 mt-2">
-            {['home', 'items', 'helpusfind', 'faq', 'contact'].map((link) => (
+            {['home', ...(isLoggedIn ? ['items'] : []), 'helpusfind', 'faq', 'contact', 'about'].map((link) => (
               <NavLink
                 key={link}
                 to={`/${link}`}
@@ -208,21 +280,25 @@ const Navbar = ({ theme, toggleTheme }) => {
                 {link.replace('us', ' Us ')}
               </NavLink>
             ))}
-            <div className="px-5 py-3">
-              <div className="h-px bg-gray-100 dark:bg-gray-800"></div>
-            </div>
-            <NavLink
-              to="/found"
-              className="block px-5 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-            >
-              Report Found
-            </NavLink>
-            <NavLink
-              to="/lost"
-              className="block px-5 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-            >
-              Report Lost
-            </NavLink>
+            {isLoggedIn && (
+              <>
+                <div className="px-5 py-3">
+                  <div className="h-px bg-gray-100 dark:bg-gray-800"></div>
+                </div>
+                <NavLink
+                  to="/found"
+                  className="block px-5 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  Report Found
+                </NavLink>
+                <NavLink
+                  to="/lost"
+                  className="block px-5 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  Report Lost
+                </NavLink>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -14,6 +14,7 @@ import msal from '@azure/msal-node';
 import feedbackRouter from './routes/feedback.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { authenticateUser, checkAuth } from './middleware/authMiddleware.js';
 
 dotenv.config();
 const app = express();
@@ -29,7 +30,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: 'http://localhost:3000',
   credentials: true,
-  exposedHeaders: ['Content-Length', 'Content-Type']
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Add security middleware before routes
@@ -50,6 +52,17 @@ const apiLimiter = rateLimit({
   max: 100
 });
 app.use('/api/', apiLimiter);
+
+// Add checkAuth middleware
+app.use(checkAuth);
+
+// Add auth check endpoint
+app.get('/api/auth/check', authenticateUser(), (req, res) => {
+  res.json({ 
+    authenticated: true,
+    user: req.user 
+  });
+});
 
 // Database Connection
 connectDB();
@@ -171,7 +184,7 @@ app.use('/api/auth', authRoutes);
 app.use('/feedback', feedbackRouter);
 
 // Item Routes
-app.post('/api/submitFoundItem', foundItemUpload.array('images', 6), async (req, res) => {
+app.post('/api/submitFoundItem', authenticateUser(), foundItemUpload.array('images', 6), async (req, res) => {
   try {
     const images = req.files.map(file => file.filename);
     
@@ -354,10 +367,9 @@ app.get('/api/test', (req, res) => {
 // Add error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  res.status(500).json({ 
+    message: err.message || 'Internal Server Error',
+    error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });
 
